@@ -1,0 +1,2 @@
+_base_: base.yaml
+cases: ./examples/bakery_greeting.json

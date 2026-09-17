@@ -1,0 +1,14 @@
+# Python 3.12. Install the SGLang runtime separately.
+# Core dependencies validated on six H100 GPUs; SGLang extras are installed separately.
+torch==2.13.0
+torchvision==0.28.0
+diffusers @ git+https://github.com/huggingface/diffusers.git@abc5e9bf71fd38f53cd471bc3acaa84bc5ecbfdc
+transformers==5.12.1
+accelerate==1.14.0
+safetensors==0.8.0
+omegaconf==2.3.1
+numpy==1.26.4
+Pillow>=10
+av==18.0.0
+tqdm>=4.66
+flash-attn-4==4.0.0b26

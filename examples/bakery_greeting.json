@@ -1,0 +1,40 @@
+[
+  {
+    "save_name": "bakery_greeting.mp4",
+    "seed": 10001,
+    "height": 544,
+    "width": 960,
+    "num_frames": 362,
+    "chunks": [
+      {
+        "prompt": "First-person POV. integrated_multimodal_description: [Shot 1] Live-action, cinematic. A rustic Western town bakery matching <Picture 2>, warm natural light, continuous first-person perspective. Clara (S2), the single female teacher matching <Picture 1>, stands on the customer side beside the wooden bread counter. She is the only other person visible. I (S1), an unseen adult male newcomer, enter through the already open bakery door and walk a few steps inside. I see Clara standing beside the counter at my right-front. She notices me and looks toward me. Loaves rest on the counter; nobody handles them. My hands remain lowered.\n\noverall_soundscape: A few footsteps on the wooden floor and faint oven crackle. No speech.\n\nnon_diegetic_music: N/A",
+        "repeat": 4,
+        "control": ["w", "w", "w", "w"]
+      },
+      {
+        "prompt": "First-person POV. integrated_multimodal_description: [Shot 1] Live-action, cinematic. A rustic Western town bakery matching <Picture 2>, warm natural light, continuous first-person perspective. Clara (S2), the single female teacher matching <Picture 1>, stands on the customer side beside the wooden bread counter. She is the only other person visible. I stop a comfortable conversational distance from Clara and face her at eye level. She turns toward me without leaving her place beside the counter. The view settles into a medium shot with her whole face visible. We both keep our hands relaxed and lowered.\n\noverall_soundscape: Faint oven crackle and a soft breeze from the open doorway. No speech.\n\nnon_diegetic_music: N/A",
+        "repeat": 2
+      },
+      {
+        "prompt": "First-person POV. integrated_multimodal_description: [Shot 1] Live-action, cinematic. A rustic Western town bakery matching <Picture 2>, warm natural light, continuous first-person perspective. Clara (S2), the single female teacher matching <Picture 1>, stands on the customer side beside the wooden bread counter. She is the only other person visible. Current speaker: Unseen newcomer (S1, calm natural adult male voice). From behind the camera, I greet Clara: <d>[English] Hello. I just arrived in town.</d> Clara listens with her lips closed and a friendly expression. The camera holds steady at eye level; nobody moves closer or handles the bread.\n\noverall_soundscape: Only the newcomer speaks, over faint oven crackle. Clara remains silent.\n\nnon_diegetic_music: N/A",
+        "repeat": 5
+      },
+      {
+        "prompt": "First-person POV. integrated_multimodal_description: [Shot 1] Live-action, cinematic. A rustic Western town bakery matching <Picture 2>, warm natural light, continuous first-person perspective. Clara (S2), the single female teacher matching <Picture 1>, stands on the customer side beside the wooden bread counter. She is the only other person visible. My greeting has ended. Clara and I hold a brief quiet pause, looking at each other. Her lips remain closed until she starts her reply. Our positions and the counter remain unchanged.\n\noverall_soundscape: Faint oven crackle and a soft breeze from the open doorway. No speech.\n\nnon_diegetic_music: N/A",
+        "repeat": 1
+      },
+      {
+        "prompt": "First-person POV. integrated_multimodal_description: [Shot 1] Live-action, cinematic. A rustic Western town bakery matching <Picture 2>, warm natural light, continuous first-person perspective. Clara (S2), the single female teacher matching <Picture 1>, stands on the customer side beside the wooden bread counter. She is the only other person visible. Current speaker: Clara (S2, warm clear adult female voice). Clara looks at me and replies with a welcoming expression: <d>[English] I'm Clara, the town's teacher. Welcome to town!</d> Only Clara speaks. I listen silently with my hands lowered. Her whole face stays visible in the steady medium shot. She finishes her line and closes her lips.\n\noverall_soundscape: Only Clara's warm female voice, over faint oven crackle. The newcomer remains silent.\n\nnon_diegetic_music: N/A",
+        "repeat": 7
+      },
+      {
+        "prompt": "First-person POV. integrated_multimodal_description: [Shot 1] Live-action, cinematic. A rustic Western town bakery matching <Picture 2>, warm natural light, continuous first-person perspective. Clara (S2), the single female teacher matching <Picture 1>, stands on the customer side beside the wooden bread counter. She is the only other person visible. After her reply, Clara gives a small friendly closed-mouth smile. I remain facing her. Hold the same quiet medium view to end the scene, with the bread counter beside her. Both of us keep our hands lowered.\n\noverall_soundscape: Faint oven crackle and a soft breeze from the open doorway. No speech.\n\nnon_diegetic_music: N/A",
+        "repeat": 2
+      }
+    ],
+    "reference_images": [
+      "./examples/female_teacher.jpg",
+      "./examples/bakery.jpg"
+    ]
+  }
+]

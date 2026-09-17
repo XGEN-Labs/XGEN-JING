@@ -1,0 +1,24 @@
+XGEN-JING
+Copyright 2026 XGEN Team. All rights reserved.
+XGEN-JING code and model modifications are released under the MiniMax H3
+Community License Agreement; see LICENSE.
+
+MiniMax H3 is licensed under the MiniMax H3 Community License Agreement, Copyright © 2026 MiniMax. All Rights Reserved.
+https://huggingface.co/MiniMaxAI/MiniMax-H3
+
+This demo uses MiniMax-H3 components from Hugging Face Diffusers.
+Selected transformer-forward and attention conventions are adapted from:
+https://github.com/huggingface/diffusers/tree/abc5e9bf71fd38f53cd471bc3acaa84bc5ecbfdc
+Copyright 2026 The MiniMax and HuggingFace Teams. All rights reserved.
+These upstream portions retain their Apache License, Version 2.0;
+see LICENSE.apache-2.0. The adaptations add JING controls and inference support.
+
+JING Flash builds upon the FlashGen four-step model published by Beidouqixing:
+https://huggingface.co/Beidouqixing/minimax-h3-4step-lora-flashgen
+The upstream release is published under Apache-2.0; see LICENSE.apache-2.0.
+JING Flash includes model modifications by XGEN Team. The resulting H3 model
+derivative is subject to the MiniMax H3 Community License Agreement.
+
+The runtime calls SGLang's public checkpoint and sharded-inference loader:
+https://github.com/sgl-project/sglang/tree/95140a7b0c9fc2f87a2a6cf6f6f0df8640a73174
+SGLang is distributed under Apache-2.0. Its source is not vendored here.

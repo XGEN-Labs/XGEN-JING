@@ -1,0 +1,28 @@
+model:
+  h3: MiniMaxAI/MiniMax-H3
+  transformer: XGENlabs/XGEN-JING
+  transformer_subfolder: jing_flash_v1
+
+runtime:
+  dit_device_offset: 2
+  dtype: bfloat16
+  attention: fa4
+  text_device: "cuda:0"
+  vae_device: "cuda:1"
+
+generation:
+  height: 544
+  width: 960
+  num_frames: 124
+  seed: 42
+  first_chunk_size: 2
+  ref_image_slots: 5
+  reserved_slots: 15
+  reference_timestep: 0.0
+  text_encoder_reference_images: true
+
+output:
+  directory: ./examples/outputs
+  save_latents: false
+
+check_config: false
