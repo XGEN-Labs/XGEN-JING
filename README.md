@@ -139,10 +139,14 @@ opening their audio/video foundation model, and the
 **[FlashGen team](https://huggingface.co/Beidouqixing/minimax-h3-4step-lora-flashgen)**
 for their four-step acceleration work and model release.
 
-We also thank [Diffusers](https://github.com/huggingface/diffusers),
+Our inference implementation builds on the open-source infrastructure provided by
+[Diffusers](https://github.com/huggingface/diffusers),
 [SGLang](https://github.com/sgl-project/sglang), and
-[FlashAttention](https://github.com/Dao-AILab/flash-attention) for their open-source
-infrastructure. See [NOTICE](NOTICE) for component attributions.
+[FlashAttention](https://github.com/Dao-AILab/flash-attention).
+See [NOTICE](NOTICE) for component attributions.
+
+We also thank the [WBench team](https://meituan-longcat.github.io/WBench/) for their
+open-source benchmark and evaluation tools for interactive video world models.
 
 ## License
 
