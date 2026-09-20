@@ -12,12 +12,12 @@ This execution permits one OpenAI API call. A validation failure terminates this
 
 Before returning the JSON envelope, enforce all of the following without omitting or weakening any later rule:
 
-**遗漏台词就是不合格。任何一个 action 遗漏其引用台词的全部或部分原文，整条样本即判定为 FAIL，不能作为合格结果输出。必须在对应的 `action_description` 中补全原始台词；意思相同、概括转述或只在其他字段保留台词均不合格。这是硬性失败条件，不是 warning。**
+**Missing dialogue is a hard failure. If any action omits all or part of a referenced utterance, the ENTIRE sample FAILS and must not be returned as valid. Restore the exact original utterance in that action's `action_description`; equivalent meaning, paraphrase, or preservation only in another field does not qualify. This is a mandatory rejection condition, not a warning.**
 
 - Every NPC object contains a nonempty `voice`. For an NPC that speaks, use the same stable voice wording in its object, root dialogue, and action description. For a non-speaking NPC, use an explicit non-speaking voice description.
 - Every English `action_description` explicitly contains `I` or `my`; every Chinese `action_description` explicitly contains `我`. The exact required First-person POV opening remains unchanged.
 - Every nonempty `dialogue_refs` array copies one complete string byte-for-byte from root `action.supporting_dialogue`, including speaker, voice, speech verb, and quoted words. English dialogue uses straight double quotes and Chinese dialogue uses `“...”`.
-- Hard failure / 不合格: for every nonempty `dialogue_refs`, copy every referenced quoted utterance verbatim into the SAME action's `action_description`, enclosed in the required quotation marks. Preserve its language, wording, punctuation, and symbols. A summary such as “问出问题”, “等待回应”, or “ask my question” is not a substitute for the actual line. Apply the dialogue-copy gate below before returning JSON.
+- Hard failure: for every nonempty `dialogue_refs`, copy every referenced quoted utterance verbatim into the SAME action's `action_description`, enclosed in the required quotation marks. Preserve its language, wording, punctuation, and symbols. A summary such as "ask the question", "wait for a response", or "ask my question" is not a substitute for the actual line. Apply the dialogue-copy gate below before returning JSON.
 - Every NPC `prompt_reference` is copied with exactly the same spelling and capitalization everywhere it appears in action descriptions.
 - Compute every action's allocated repeat count with the Repeat schedule formula below. Its `control` length equals that allocation exactly, and all entries inside one action are identical. Any retained illustrative mixed schedule is subordinate to this uniform camera-phase gate.
 
@@ -159,9 +159,9 @@ The action document is the sole case-data input to compilation. It must contain 
 - `action_description` begins exactly with `第一人称POV` for Chinese or `First-person POV.` for English.
 - It contains no S/O/B labels, H3 envelope, `<d>` wrapper, soundscape section, or non-diegetic section.
 - `overall_soundscape` is complete for its action. Compilation copies it without consulting Environment.
-- Every action has a nonempty `control` array with one entry per allocated repeat. Each entry is either the string `""` for a stationary atomic repeat or a canonical discrete control string using lowercase `w/s/a/d`. JSON `null` is invalid in this array.
+- Every action has a nonempty `control` array with one entry per allocated repeat. Each entry is either the string `""` for a stationary atomic repeat or a canonical discrete control string using lowercase `w/s/a/d/i/j/k/l`. JSON `null` is invalid in this array.
 - `control` describes only the unique first-person camera wearer, Ego/S1. Never add it to an NPC or use it to encode NPC locomotion, pose, gestures, or turns. NPC motion belongs in `action_description` and `scene_dynamics`. If an NPC moves while Ego remains planted, use `""` for every corresponding Ego control entry.
-- `w/s/a/d` translate forward/back/left/right. Use bare lowercase keys; do not use repetition expressions. View rotation is described in the action prompt, with `""` when there is no translation; do not generate rotation keys.
+- `w/s/a/d` translate forward/back/left/right; `i/k` look up/down and `j/l` turn left/right. Use bare lowercase keys; do not use repetition expressions. Keep view rotation in the action prompt consistent with IJKL controls. In-place turns use rotation keys without translation keys.
 - Comma-separated keys in one array entry are simultaneous: `w,a` means moving diagonally forward-left, not walking forward and then left.
 - Compilation emits one chunk per action, with `repeat` equal to its control length and an equally long `control` array. It copies the control array unchanged. Action generation and the final cases use the same control syntax.
 
@@ -554,7 +554,7 @@ Start a moving chunk with the inherited state and primary action. Add only the e
 
 Prefer:
 
-`第一人称POV停在控制台前。男人原地转身面对镜头，身旁仍是闪烁的显示器。`
+`First-person POV. I remain stopped at the console. The man turns in place to face the camera, with the blinking monitors still beside him.`
 
 Avoid beginning with a long inventory of the whole room and placing the turn or walk at the end. The model commonly spends the chunk rendering the inventory and ignores the late action.
 
@@ -643,7 +643,7 @@ The following cases show how the general observations change actual H3 chunk des
 ### Failure shape
 
 ```text
-第一人称POV。明亮诊所入口有玻璃门、灰色地垫、前台、透明伞架、墙面标识、椅子和雨景。最后，我看向地上的雨伞。
+First-person POV. The bright clinic entrance has a glass door, a gray mat, a reception desk, a transparent umbrella stand, wall signs, chairs, and a view of the rain. Finally, I look at the umbrella on the floor.
 ```
 
 The intended action is late and weak. H3 may spend the entire chunk holding a polished empty entrance, with no readable cause or participant task.
@@ -651,7 +651,7 @@ The intended action is late and weak. H3 may spend the entire chunk holding a po
 ### Repaired chunk
 
 ```text
-第一人称POV从玻璃门进入诊所，在灰色地垫内侧停下。我右手收着一把湿的深蓝雨伞，前方偏左的蓝衣前台正在整理预约单；玻璃门右侧的透明伞架随我的进入保持可见。
+First-person POV. I enter the clinic through the glass door and stop just inside the gray mat. My right hand holds a closed, wet navy-blue umbrella. Ahead-left, the receptionist in blue sorts appointment slips; the transparent umbrella stand to the right of the glass door remains visible as I enter.
 ```
 
 ### Why it is better
@@ -665,17 +665,17 @@ The entry movement establishes space while introducing ownership, role, route, a
 Chunk 1 contains only a bench and scarf. Chunk 2 begins:
 
 ```text
-同一位绿色大衣女人站在前方两米处。
+The same woman in a green coat stands two meters ahead.
 ```
 
-She was never introduced, so `同一位` cannot preserve identity. H3 may pop a new person into the composition.
+She was never introduced, so `the same` cannot preserve identity. H3 may pop a new person into the composition.
 
 ### Repaired boundary
 
 ```text
-Chunk 1 end: 绿色大衣女人坐在长椅右半边，红围巾穿在她的手提袋把手上。
+Chunk 1 end: The woman in a green coat sits on the right half of the bench, with a red scarf looped through her handbag handle.
 
-Chunk 2 start: 绿色大衣女人从同一右侧座位起身，提起手提袋并向右前方车门走出两步；红围巾擦过长椅边缘后滑落。
+Chunk 2 start: The woman in a green coat rises from the same right-hand seat, lifts her handbag, and takes two steps toward the bus door ahead-right; the red scarf brushes the bench edge and slips off.
 ```
 
 ### Why it is better
@@ -687,8 +687,8 @@ Identity, start position, object ownership, motion vector, and departure route a
 ### Failure shape
 
 ```text
-Chunk 1 end: 我面对诊所前台。
-Chunk 2 start: 玻璃门和雨伞直接出现在正前方。
+Chunk 1 end: I face the clinic reception desk.
+Chunk 2 start: The glass door and umbrella appear directly ahead.
 ```
 
 The camera orientation changes without embodied rotation. H3 may render a cut to a different entrance composition.
@@ -696,7 +696,7 @@ The camera orientation changes without embodied rotation. H3 may render a cut to
 ### Repaired chunk
 
 ```text
-第一人称POV从前台方向向右后方转动头部和上身。蓝衣前台随视野旋转滑向左侧边缘，灰色地垫从右下方展开，玻璃门连续转入正前方；横放的深蓝雨伞最终位于画面下方中央。
+First-person POV. I turn my head and upper body toward the rear-right from the reception desk. As the view rotates, the receptionist in blue slides toward the left edge, the gray mat opens into view from the lower right, and the glass door turns continuously into the center; the navy-blue umbrella lying across the mat ends up in the lower center of the image.
 ```
 
 ### Why it is better
@@ -708,7 +708,7 @@ The former subject exits through an image edge while shared floor and lighting a
 ### Failure shape
 
 ```text
-一条属于绿色大衣女人的红围巾放在长椅上。我喊：“女士，您的围巾掉了。”
+A red scarf belonging to the woman in a green coat lies on the bench. I call, "Ma'am, you dropped your scarf."
 ```
 
 The ownership claim exists only in narration. The first-person wearer has no visible evidence.
@@ -716,18 +716,18 @@ The ownership claim exists only in narration. The first-person wearer has no vis
 ### Repaired two-chunk cause
 
 ```text
-Chunk A: 红围巾清楚穿绕在绿色大衣女人的手提袋把手上。
-Chunk B: 她提袋起身时，围巾从同一袋把滑脱并落到长椅；我的视线从她的背影下移到刚落下的围巾。
+Chunk A: The red scarf is clearly looped through the handbag handle of the woman in a green coat.
+Chunk B: As she lifts the bag and rises, the scarf slips from that same handle onto the bench; my gaze lowers from her back to the scarf that just fell.
 ```
 
-The later warning now follows an event the camera actually observed. If the fall cannot be shown, change the line to a question: `女士，这条围巾是您的吗？`
+The later warning now follows an event the camera actually observed. If the fall cannot be shown, change the line to a question: `Ma'am, is this scarf yours?`
 
 ## Case 5: too many actions compete in one chunk
 
 ### Failure shape
 
 ```text
-我转身走回长椅，弯腰拿起围巾，追上女人，叫住她，把围巾递过去，她接住、围上并登车。
+I turn and walk back to the bench, bend to pick up the scarf, catch up with the woman, call to her, and hand it over; she takes it, wraps it around her neck, and boards.
 ```
 
 This contains a large turn, travel, pickup, pursuit, speech, handoff, use, and threshold crossing. H3 will often render only one endpoint, commonly the woman already holding the scarf.
@@ -766,8 +766,8 @@ For a short non-central placement, these micro-chunks encourage composition rese
 ### Repaired operation
 
 ```text
-Chunk A: 我走回地垫，俯身握住自己雨伞的弯柄，将雨伞完整提离门轨；玻璃门开始恢复闭合。
-Chunk B: 我直起身体，横移到已可见的门边伞架，把伞尖向下放入插槽；确认伞架承重后松手。
+Chunk A: I walk back to the mat, bend to grip the curved handle of my own umbrella, and lift it completely clear of the door track; the glass door begins closing again.
+Chunk B: I straighten up, move sideways to the already-visible umbrella stand beside the door, and place the umbrella tip down into a slot; I release it only after confirming that the stand supports its weight.
 ```
 
 ### Why it is better
@@ -779,7 +779,7 @@ Pickup is one readable phase; placement is another. Fine grip states remain only
 ### Failure shape
 
 ```text
-我把红围巾递给女人。下一段，她已经戴上围巾。
+I hand the red scarf to the woman. In the next segment, she is already wearing it.
 ```
 
 The object may teleport, duplicate, or remain in S1's hand because the ownership transition is not visible.
@@ -787,7 +787,7 @@ The object may teleport, duplicate, or remain in S1's hand because the ownership
 ### Repaired handoff
 
 ```text
-第一人称POV停在女人伸手可及的位置。我右手平稳递出红围巾；她的左手抓住另一端并承担重量。确认她握稳后，我松开右手并收回。她现在单独持有围巾，随即把它绕回颈间。
+First-person POV. I stop within the woman's reach and steadily offer the red scarf with my right hand. Her left hand grips the other end and supports its weight. Only after confirming her secure grip do I release my right hand and withdraw it. She now holds the scarf alone, then wraps it around her neck.
 ```
 
 ### When to simplify instead
@@ -807,8 +807,8 @@ H3 may hold the chef as a speaking portrait while suppressing urgent action. The
 ### Repaired dialogue/action allocation
 
 ```text
-Chunk A: the small flare appears; S1 stops stirring and calls, “老师，着火了！”
-Chunk B: the classmate starts toward the water; the chef blocks the reach and says, “别拿水！你关火，她拿锅盖。”
+Chunk A: the small flare appears; S1 stops stirring and calls, "Chef, there is a fire!"
+Chunk B: the classmate starts toward the water; the chef blocks the reach and says, "No water! You turn off the heat; she gets the lid."
 Chunk C: S1 turns off the burner while the classmate leaves the water and retrieves the established lid.
 ```
 
@@ -842,7 +842,7 @@ The interaction stays within three people because all roles are necessary, but e
 ### Failure shape
 
 ```text
-前台说：“谢谢，门口安全了。”
+The receptionist says, "Thank you. The entrance is safe now."
 ```
 
 The line claims an outcome, but the door, route, and umbrella may still look unchanged.
@@ -850,7 +850,7 @@ The line claims an outcome, but the door, route, and umbrella may still look unc
 ### Repaired ending
 
 ```text
-深蓝雨伞直立在门边伞架内。失去阻挡的玻璃门连续闭合，门内灰色地垫完全空出，吹入入口的雨点停止；S1转回前台。
+The navy-blue umbrella stands upright in the stand beside the door. The unobstructed glass door closes continuously, the gray mat inside is completely clear, and rain stops blowing into the entrance; S1 turns back toward reception.
 ```
 
 ### Why it is better
@@ -864,15 +864,15 @@ Object support, door state, route clearance, and the participant's next goal are
 Every chunk repeats a long portrait:
 
 ```text
-一名约三十岁、棕色长发、绿色及膝外套、黑色长裤、棕色鞋、携带棕色手提袋的成年女性通勤者……
+An adult woman commuter, about thirty years old, with long brown hair, a green knee-length coat, black trousers, brown shoes, and a brown handbag...
 ```
 
 Repeated re-description can make H3 regenerate rather than continue the person.
 
 ### Repaired identity strategy
 
-- First visible introduction: `穿绿色大衣、右手提棕色手提袋的成年女通勤者（S2）`.
-- Later chunks: `绿色大衣女通勤者（S2）`.
+- First visible introduction: `the adult woman commuter in a green coat, holding a brown handbag in her right hand (S2)`.
+- Later chunks: `the woman commuter in the green coat (S2)`.
 - Reassert only the anchor needed for current ownership or orientation, such as the tote in her right hand during handoff.
 
 ## Case 12: motion strength has no bodily cause
@@ -880,7 +880,7 @@ Repeated re-description can make H3 regenerate rather than continue the person.
 ### Failure shape
 
 ```text
-紧张电影感，镜头剧烈晃动。
+Tense cinematic atmosphere with violent camera shake.
 ```
 
 At a quiet clinic entrance or bus shelter, this can produce unstable motion unrelated to the actor's body.
@@ -930,37 +930,97 @@ If this sentence cannot be written without inventing a new position, pose, owner
 - Is every central object introduced before use and continuously supported?
 - Does the final chunk prove the physical or social result without explanatory dialogue?
 
-# Jing camera translation controls
+# Jing camera controls
 
-Each Ego action has a nonempty `control` list with one string per allocated
-repeat. Compilation copies this list unchanged into the final case.
+The workflow requires a per-repeat control schedule in every Action generation Ego action. The schedule is control-intent metadata and is compiled deterministically into H3 chunk runs.
 
-- `"w"`: forward; `"s"`: backward; `"a"`: left; `"d"`: right.
-- `"w,a"`: hold W and A simultaneously throughout one slice.
-- `""`: no translation keys. Use it for waiting, speaking, hand interaction,
-  or an in-place look/turn described in the prompt.
-- The list orders slices in time; commas inside a string combine keys within
-  that slice. Do not use `*` counts, parenthesized expressions or rotation keys.
+The schedule describes only the unique first-person camera wearer, Ego/S1. It never describes an NPC. NPC walking, turning, gestures, and pose changes remain natural-language content in `action_description` and `scene_dynamics`. When an NPC moves but Ego stays planted, the Ego schedule uses `""` for those repeats.
 
-Keep one control phase per action. For example, first moving forward and then
-left needs two actions, using only `"w"` and only `"a"` respectively. Never encode
-that sequence as `"w,a"`. Split a following stop into a stationary action.
+## Action generation representation
+
+`agents.ego.action_list.actions[].control` is a nonempty JSON array. Its length equals the repeat allocation for that action. Each entry controls one atomic repeat:
+
+- use the string `""` when the camera stays stationary;
+- use a control string when the camera translates or turns;
+- never use JSON `null` or `"null"` as a stationary marker.
+
+Canonical keys are:
+
+- `w`: translate forward;
+- `s`: translate backward;
+- `a`: translate left;
+- `d`: translate right;
+- `i`: pitch up;
+- `j`: yaw left;
+- `k`: pitch down;
+- `l`: yaw right.
+
+Use bare lowercase keys. Do not use aliases such as `left`, `right`, `up`, or `down`, repetition counts or parenthesized expressions.
+
+## Atomic combination semantics
+
+One array entry controls one atomic slice. Keys have fixed discrete magnitude; repeated keys do not increase it, and opposite keys cancel.
+
+Comma-separated keys in one entry are active simultaneously, not sequentially. Examples:
+
+```text
+j,w
+i,l
+a,k
+```
+
+`j,w` means yaw left while moving forward in the same atomic chunk. It does not mean turn first and then walk. Express chronological control changes across separate actions with uniform schedules.
+
+## One action, one control phase
+
+Every control entry inside one action must be identical. The schedule length
+still equals the action's repeat allocation, but it represents one stable camera
+phase rather than several phases hidden behind one prompt.
+
+Valid examples:
 
 ```json
 ["", "", ""]
 ["w", "w", "w", "w"]
-["w,a", "w,a"]
+["j,w", "j,w"]
 ```
 
-The action's timestamp determines its allocated repeat count. For each action,
-control length must equal that count. Keep prompts consistent with the current
-movement phase and preserve each phase's endpoint for the next action. If an
-NPC moves while Ego stays planted, Ego control remains `""`.
+Mixed schedules such as `["l", "l", "w", "w", ""]` are invalid.
+Split them into separate Action generation actions: one action that turns, one that walks,
+and one that settles. Each new action must have its own timestamps, action plan,
+scene dynamics, action description, soundscape, and uniform schedule. Preserve
+the inherited end state across those action boundaries.
 
-A final chunk contains only `prompt`, `repeat` and `control`. Total frames equal
-`17 * sum(repeat) + 5`, matching Jing's default first-slice layout. Output
-resolution must be divisible by 32. Render at 24 FPS with four denoising steps;
-sampler settings belong to the inference configuration, not the cases JSON.
+For adjacent nonstationary phases in one continuous move, keep the shared
+route context and scene identity in both prompts, but describe only the current
+turn or translation as occurring in each action. Over-localizing those prompts can make H3 rebuild a
+landmark instead of carrying it through the move. For the stationary phase,
+use a terminal-state-only settle prompt. Repeat the
+preceding endpoint's landmark identity, scale, screen position, and lighting,
+then explicitly forbid replay, motion, zoom, and scene change.
+
+## Compilation
+
+Compilation emits exactly one chunk per action. Its `repeat` equals the
+control list length, and the compiler copies the entire list unchanged, including
+empty strings for stationary slices. Compilation never splits an action and
+never duplicates its prompt. Each chunk contains only `prompt`, `repeat` and
+`control`. Total frames equal `17 * sum(repeat) + 5`; resolution must be divisible
+by 32. Render at 24 FPS with four denoising steps; sampler settings belong to
+the inference configuration.
+
+## Match control and prose
+
+- The complete schedule must agree with the action description and its inherited start/end camera pose.
+- Read every key as Ego/S1 camera motion. Never mirror an NPC's motion into this field.
+- Use `""` throughout stationary dialogue, waiting, and hand manipulation unless the written action explicitly includes head motion.
+- Use translation only when the POV changes world position; do not use `w` merely to add visual activity.
+- Use `i/j/k/l` for view rotation without claiming that the camera translated.
+- When an action begins moving and ends stopped, split movement and settle into separate actions with separate prompts.
+- When motion changes direction, split at each change and keep every resulting schedule uniform.
+- If a turn and movement happen simultaneously inside the same atomic repeat, use a multi-key entry such as `j,w`.
+
+The prose remains authoritative for semantic intent, while the control array is authoritative for per-repeat discrete control timing. If they disagree, fix Action generation rather than patching the H3 output.
 
 # Complexity budget for stories up to 60 seconds
 
@@ -1049,10 +1109,10 @@ Preserve intended meaning and speaker order. Repair translated, repetitive, or s
 - Begin every Chinese prompt with `第一人称POV` and every English prompt with `First-person POV.`. Do not mix the Chinese token into English prose.
 - Do not translate a requested line unless the user asks. Express its language through the surrounding case language, not through a label.
 
-Recommended Chinese form:
+Example (shown in English):
 
 ```text
-第一人称POV延续同一图书馆柜台位置，约45岁的女图书管理员把办好的借阅证放在柜台上，以沉稳清晰的成年女性声线说：“借阅证办好了，请收好。”
+First-person POV. Continuing at the same library counter, I watch the approximately forty-five-year-old woman librarian place the completed library card on the counter and say in a calm, clear adult female voice, "Your library card is ready. Please keep it safe."
 ```
 
 Recommended English form:
@@ -1113,7 +1173,7 @@ Use one of these transition modes:
 Reject a rewrite boundary when it jumps directly to arrival or completion,
 reverses left/right or travel direction without a visible turn, changes subject
 scale without approach or retreat, makes a subject or object pop in or out, or
-uses an external/reverse shot.  Do not write `画面切到`, `随后来到`, `already
+uses an external/reverse shot.  Do not write `cut to`, `then arrives`, `already
 at`, or similar edit language merely to avoid staging the physical bridge.
 
 For doors, arches, and corners, prefer the ordered visual chain:
@@ -1154,39 +1214,39 @@ duration is tight, remove decorative holds before removing the bridge.
     "num_inference_steps": 4,
     "control_signal": "camera_delta",
     "discrete_camera": true,
-    "prompt_language": "Chinese",
-    "visual_style": "自然写实真人电影感，连续具身眼平视角，身份、空间锚点与动作保持稳定",
+    "prompt_language": "English",
+    "visual_style": "Naturalistic live-action cinematic style, continuous embodied eye-level viewpoint, with stable identities, spatial anchors, and actions",
     "non_diegetic_music": "N/A"
   },
   "intent": {
-    "goal": "询问观景台距离并沿向导指示的上坡路线继续前进。",
+    "goal": "Ask how far the viewpoint is and continue along the uphill route indicated by the guide.",
     "scene_change": false,
     "start_environment_id": "forest_viewpoint_path",
     "end_environment_id": "forest_viewpoint_path"
   },
   "action": {
-    "instruction": "接近向导，询问距离，听取回答，然后继续上坡。",
+    "instruction": "Approach the guide, ask the distance, listen to the answer, then continue uphill.",
     "supporting_dialogue": [
-      "成年男性徒步者以清楚礼貌的成年男性声线问：“前面的观景台还有多远？”",
-      "绿色户外夹克的成年女性向导以平静清晰的成年女性声线回答：“再走十分钟就到了。”"
+      "the adult male hiker asks in a clear, polite adult male voice: \"How much farther is the viewpoint ahead?\"",
+      "the adult woman guide in a green outdoor jacket answers in a calm, clear adult female voice: \"It is another ten minutes on foot.\""
     ]
   },
   "agents": {
     "npcs": [
       {
         "agent_id": "trail_guide",
-        "identity": "一名约三十岁、穿绿色户外夹克和深色徒步裤的成年女性向导。",
-        "prompt_reference": "绿色户外夹克的成年女性向导",
-        "voice": "平静清晰的成年女性声线",
-        "interaction_mode": "她在小路旁面对持镜者，通过回答和指向上坡路线提供信息。",
-        "state_description": "她最终留在路边，目送持镜者继续前进。"
+        "identity": "An adult woman trail guide, about thirty years old, wearing a green outdoor jacket and dark hiking trousers.",
+        "prompt_reference": "the adult woman guide in a green outdoor jacket",
+        "voice": "a calm, clear adult female voice",
+        "interaction_mode": "She faces the camera wearer beside the path, providing information by answering and pointing along the uphill route.",
+        "state_description": "She ultimately remains beside the path and watches the camera wearer continue."
       }
     ],
     "ego": {
       "agent_id": "ego_hiker",
-      "identity": "一名沿林间小路上行的成年男性徒步者和唯一持镜者。",
-      "prompt_reference": "成年男性徒步者",
-      "voice": "清楚礼貌的成年男性声线",
+      "identity": "An adult male hiker ascending a forest path and the only camera wearer.",
+      "prompt_reference": "the adult male hiker",
+      "voice": "a clear, polite adult male voice",
       "action_list": {
         "total_num": 5,
         "actions": [
@@ -1194,89 +1254,89 @@ duration is tight, remove decorative holds before removing the bridge.
             "action_id": 1,
             "timestamp": "00:00.0-00:03.0",
             "action_type": "navigation",
-            "action_plan": "沿上坡土路接近向导，在两步距离减速并停稳。",
+            "action_plan": "Approach the guide along the uphill dirt path, slow down two steps away, and come to a complete stop.",
             "speaker_agent_id": null,
             "dialogue_refs": [],
             "scene_dynamics": [
               {
                 "environment_id": "forest_viewpoint_path",
-                "description": "在 forest_viewpoint_path 中，土路和灌木因我前进而向画面下方滑过，向导随距离缩短连续放大；柔和日光保持稳定。"
+                "description": "In forest_viewpoint_path, the dirt path and shrubs slide toward the lower edge of the image as I advance, and the guide grows continuously larger as the distance closes; soft daylight remains stable."
               }
             ],
-            "action_description": "第一人称POV我保持成年男性徒步者的自然眼高，沿缓慢上升的土路走向绿色户外夹克的成年女性向导。两侧灌木随脚步后移，我在她面前两步处减速并完整停稳，上坡路线仍在她身后可见。",
-            "overall_soundscape": "自然脚步、轻微衣料声、林间风和远处鸟声保持空间层次。",
+            "action_description": "First-person POV. I maintain the natural eye height of the adult male hiker and walk along the gently rising dirt path toward the adult woman guide in a green outdoor jacket. Shrubs on both sides recede with my steps. I slow down and stop completely two steps in front of her, with the uphill route still visible behind her.",
+            "overall_soundscape": "Natural footsteps, faint clothing rustle, forest wind, and distant birds retain their spatial layers.",
             "control": ["w", "w", "w", "w"]
           },
           {
             "action_id": 2,
             "timestamp": "00:03.0-00:05.5",
             "action_type": "manipulation",
-            "action_plan": "保持停步，向向导询问观景台距离。",
+            "action_plan": "Remain stopped and ask the guide how far the viewpoint is.",
             "speaker_agent_id": "ego_hiker",
             "dialogue_refs": [
-              "成年男性徒步者以清楚礼貌的成年男性声线问：“前面的观景台还有多远？”"
+              "the adult male hiker asks in a clear, polite adult male voice: \"How much farther is the viewpoint ahead?\""
             ],
             "scene_dynamics": [
               {
                 "environment_id": "forest_viewpoint_path",
-                "description": "在 forest_viewpoint_path 中，相机位置不变，向导、土路和灌木保持原有尺度；向导真实转向我倾听。"
+                "description": "In forest_viewpoint_path, the camera stays in place; the guide, dirt path, and shrubs retain their scale while the guide physically turns toward me to listen."
               }
             ],
-            "action_description": "第一人称POV我停在同一位置，面对两步外绿色户外夹克的成年女性向导，以清楚礼貌的成年男性声线问：“前面的观景台还有多远？”她保持安静并看向我，完整听完问题。",
-            "overall_soundscape": "我的近场成年男性问话位于林间风、树叶摩擦和远处鸟声之前。",
+            "action_description": "First-person POV. I remain at the same position, facing the adult woman guide in a green outdoor jacket two steps away, and ask in a clear, polite adult male voice: \"How much farther is the viewpoint ahead?\" She stays silent, looks at me, and listens to the complete question.",
+            "overall_soundscape": "My nearby adult male question is audible in front of the forest wind, rustling leaves, and distant birds.",
             "control": ["", "", "", ""]
           },
           {
             "action_id": 3,
             "timestamp": "00:05.5-00:08.0",
             "action_type": "manipulation",
-            "action_plan": "留在原地听向导回答并观察她指向上坡路线。",
+            "action_plan": "Remain in place, listen to the guide's answer, and watch her point along the uphill route.",
             "speaker_agent_id": "trail_guide",
             "dialogue_refs": [
-              "绿色户外夹克的成年女性向导以平静清晰的成年女性声线回答：“再走十分钟就到了。”"
+              "the adult woman guide in a green outdoor jacket answers in a calm, clear adult female voice: \"It is another ten minutes on foot.\""
             ],
             "scene_dynamics": [
               {
                 "environment_id": "forest_viewpoint_path",
-                "description": "在 forest_viewpoint_path 中，固定植被和路面保持稳定；向导真实抬手指向她身后连续可见的上坡土路。"
+                "description": "In forest_viewpoint_path, the fixed vegetation and ground remain stable; the guide physically raises her hand to point along the continuously visible uphill dirt path behind her."
               }
             ],
-            "action_description": "第一人称POV我继续停在原地。绿色户外夹克的成年女性向导以平静清晰的成年女性声线回答：“再走十分钟就到了。”她随后抬手指向身后继续上升的土路，我保持安静并看清方向。",
-            "overall_soundscape": "向导的近场成年女性回答清晰可辨，衣袖轻响，林间风和鸟声持续。",
+            "action_description": "First-person POV. I remain in place. Facing me, the adult woman guide in a green outdoor jacket answers in a calm, clear adult female voice: \"It is another ten minutes on foot.\" Then the adult woman guide in a green outdoor jacket raises her arm to point along the rising dirt path behind her; I remain silent and observe the direction.",
+            "overall_soundscape": "The guide's nearby adult female answer is clear, her sleeve rustles softly, and forest wind and birds continue.",
             "control": ["", "", ""]
           },
           {
             "action_id": 4,
             "timestamp": "00:08.0-00:08.7",
             "action_type": "navigation",
-            "action_plan": "停在原位向左转动视角，让上坡路线居中。",
+            "action_plan": "Turn the view left in place to center the uphill route.",
             "speaker_agent_id": null,
             "dialogue_refs": [],
             "scene_dynamics": [
               {
                 "environment_id": "forest_viewpoint_path",
-                "description": "在 forest_viewpoint_path 中，我原地向左转动视角，固定植被和上坡路线连续滑过画面，路线在结束时居中。"
+                "description": "In forest_viewpoint_path, I turn the view left in place; fixed vegetation and the uphill route slide continuously across the image, leaving the route centered at the end."
               }
             ],
-            "action_description": "第一人称POV我承接向导指向上坡土路的状态，停在原位向左转动视角，让上坡路线进入画面中央；这一阶段只转向，不向前行走。",
-            "overall_soundscape": "转身时衣料轻响，林间风和鸟声持续。",
-            "control": [""]
+            "action_description": "First-person POV. Following the guide's gesture toward the uphill dirt path, I stay in place and turn my view left until the route is centered; this phase only turns and includes no forward walking.",
+            "overall_soundscape": "Clothing rustles softly during the turn; forest wind and birds continue.",
+            "control": ["j"]
           },
           {
             "action_id": 5,
             "timestamp": "00:08.7-00:10.0",
             "action_type": "navigation",
-            "action_plan": "沿已经居中的上坡路线向前，从向导身侧经过。",
+            "action_plan": "Walk forward along the already-centered uphill route, passing beside the guide.",
             "speaker_agent_id": null,
             "dialogue_refs": [],
             "scene_dynamics": [
               {
                 "environment_id": "forest_viewpoint_path",
-                "description": "在 forest_viewpoint_path 中，上坡路线保持居中，近处土路和植被随我前进连续后移。"
+                "description": "In forest_viewpoint_path, the uphill route stays centered while nearby dirt and vegetation recede continuously as I walk forward."
               }
             ],
-            "action_description": "第一人称POV我承接原地转向后的终点，沿正前方的上坡土路向前行走，从绿色户外夹克的成年女性向导身侧以自然距离经过；我保持朝向，不再转动视角。",
-            "overall_soundscape": "自然脚步重新开始，林间风和鸟声保持连续。",
+            "action_description": "First-person POV. From the endpoint of my in-place turn, I walk forward along the uphill dirt path directly ahead, passing the adult woman guide in a green outdoor jacket at a natural distance; I maintain my facing without turning the view again.",
+            "overall_soundscape": "Natural footsteps resume; forest wind and birds remain continuous.",
             "control": ["w", "w"]
           }
         ]
@@ -1294,7 +1354,7 @@ This appendix has final precedence only for continuity between adjacent actions.
 - For every action after the first, begin `action_description` with one concise clause that inherits the exact prior endpoint: the same environment, camera position, height and facing; the focal participant's side, distance and scale; two stable landmarks; lighting; and any task-relevant hand or object support. Reuse the exact `prompt_reference` and introduce no new prop, pose, or event in this seam clause.
 - When either adjacent action contains camera motion, describe the visible spatial bridge across the boundary: fixed anchors slide, grow, recede, or cross the frame consistently; subject scale changes only through shown motion; and the previous endpoint is the next opening composition. Do not begin at an unexplained arrival or allow a jump cut, teleportation, direction reversal, or scene reconstruction.
 
-## mandatory dialogue-copy gate — 台词未原样写入动作描述即不合格
+## mandatory dialogue-copy gate — reject any missing verbatim utterance
 
 **Acceptance is all-or-nothing: one missing referenced utterance, or any omitted part of it, makes the ENTIRE sample FAIL. This is a mandatory rejection condition, never a warning or an advisory quality issue. Repair every omission before emitting the response; otherwise the sample is not qualified.**
 
@@ -1304,19 +1364,19 @@ For EACH action with a nonempty `dialogue_refs`:
 
 1. Copy the complete selected root `action.supporting_dialogue` string exactly into `dialogue_refs`, as already required. Then extract its quoted utterance and copy that utterance verbatim into this action's `action_description`, with Chinese `“...”` or English straight double quotes. The surrounding narration may be adapted to first-person POV, but the quoted text must remain unchanged, including language, words, punctuation, and symbols. In JSON, escape English double quotes as `\"`; after JSON decoding they must be ordinary double quotes in the description.
 2. Explicitly attribute the line to the declared `speaker_agent_id` with the consistent speaker identity and voice. Preserve one speaker turn per action and the required first-person opening. Do not add another speaker's answer to the same action.
-3. “问出问题”, “说了那句话”, “回答了我的问题”, “ask my question”, “respond to me”, a translation, or a paraphrase WITHOUT the verbatim quoted utterance is INVALID / 不合格, even when it conveys the same intent. Such output triggers `referenced utterance is absent from action_description` and, when no quoted speech remains, `dialogue action_description lacks quoted speech`.
+3. "ask the question", "say that line", "answer my question", "respond to me", a translation, or a paraphrase WITHOUT the verbatim quoted utterance is INVALID, even when it conveys the same intent. Such output triggers `referenced utterance is absent from action_description` and, when no quoted speech remains, `dialogue action_description lacks quoted speech`.
 4. Never evade this gate by deleting or emptying a required `dialogue_refs`, removing the root line, dropping the speaking event, or moving it to another action. Repair this action's description by restoring the original quoted line.
 
-Chinese example — partial fields of the SAME action:
+Coupon example — partial fields of the SAME action:
 
 ```json
 {
-  "dialogue_refs": ["第一人称购物者以礼貌清晰的成年声线问：“请问这张优惠券是在右拐的这家店使用吗？”"],
-  "action_description": "第一人称POV我停在店员面前，右手握着红色纸质优惠券，以礼貌清晰的成年声线问：“请问这张优惠券是在右拐的这家店使用吗？”店员保持安静，听完我的问题。"
+  "dialogue_refs": ["The first-person shopper asks in a clear, polite adult voice: \"Excuse me, is this coupon for the shop just around the corner to the right?\""],
+  "action_description": "First-person POV. I remain stopped in front of the clerk, holding a red paper coupon in my right hand, and ask in a clear, polite adult voice: \"Excuse me, is this coupon for the shop just around the corner to the right?\" The clerk stays silent and listens to my complete question."
 }
 ```
 
-INVALID counterpart: `第一人称POV我停在店员面前，以礼貌清晰的成年声线问出问题。` It omits the quoted line, even though `dialogue_refs` still contains it.
+INVALID counterpart: `First-person POV. I remain stopped in front of the clerk and ask my question in a clear, polite adult voice.` It omits the quoted line, even though `dialogue_refs` still contains it.
 
 English example — partial fields of the SAME action:
 
@@ -1331,13 +1391,13 @@ INVALID counterpart: `First-person POV. I remain stopped in front of the clerk a
 
 If an already quoted reference is a vocalization such as `"*soft meow*"`, preserve the exact quoted `*soft meow*` in the corresponding description; `responds with a soft meow` alone does not pass the literal-copy check. This does not authorize inventing dialogue or converting ordinary ambient sounds into speaking turns.
 
-Final silent self-check: after composing the entire envelope, iterate through ALL actions, extract every quoted utterance from each `dialogue_refs` entry, and verify that the exact utterance occurs inside quotation marks in that SAME action's decoded `action_description`. Check every action, not just the examples or the first speaking action. If any line is absent, shortened, translated, paraphrased, or unquoted, the envelope is NOT QUALIFIED / 不合格: repair it before returning the JSON. Return only the required JSON envelope, without this checklist or validation commentary.
+Final silent self-check: after composing the entire envelope, iterate through ALL actions, extract every quoted utterance from each `dialogue_refs` entry, and verify that the exact utterance occurs inside quotation marks in that SAME action's decoded `action_description`. Check every action, not just the examples or the first speaking action. If any line is absent, shortened, translated, paraphrased, or unquoted, the envelope is NOT QUALIFIED: repair it before returning the JSON. Return only the required JSON envelope, without this checklist or validation commentary.
 
 ## mixed-control split rule
 
 This rule takes precedence over any earlier example that mixes control entries within one action or relies on Compilation to split it.
 
-- **同一个 action 的 `control` 条目必须完全一致；混合轨迹即不合格。** If the camera retreats, then moves right, then stops, split these sequential phases into separate actions BEFORE returning JSON. Never replace mixed entries with one control or combine them with commas to disguise sequential motion as simultaneous.
+- **Every `control` entry within one action must be identical; a mixed schedule is invalid.** If the camera retreats, then moves right, then stops, split these sequential phases into separate actions BEFORE returning JSON. Never replace mixed entries with one control or combine them with commas to disguise sequential motion as simultaneous.
 - Example: `["s", "s", "d", "d", "", ""]` must become a backward action using only `s`, a rightward-translation action using only `d`, and a stationary action using only `""`. The stationary phase may merge into the next action only if it is also stationary and preserves event order and the one-speaking-turn limit. If the story additionally requires turning, retain a separate appropriate yaw phase; `d` is translation, not a turn.
 - Each new action describes ONLY its own motion phase and inherits the previous endpoint. Preserve the original events and all quoted dialogue; do not duplicate or omit a line during splitting. Actions without dialogue use `dialogue_refs: []` and `speaker_agent_id: null`.
 - After splitting, renumber all `action_id` values as consecutive JSON integers, update `total_num`, give every action continuous positive-duration timestamps, and recompute ALL control lengths using the existing case-wide repeat allocation. Preserve the total duration. Necessary control-phase splits take priority over advisory action-count targets.
@@ -1408,7 +1468,7 @@ This appendix uses a western-town photo inquiry to explain failures observed in 
 | Evidence from this case | Interpretation and Action generation response |
 |---|---|
 | Opening prose said approach, decelerate, stop, park luggage and release the handle; every control entry was `w`. | The prose includes a stationary endpoint but control never settles. Split approach from stationary parking/settling, preserving the same doorway and distance at the boundary. |
-| Final prose said turn right, then follow forward; all ten entries were `w`. | Separate the in-place turn (`""`, rotation described in prose) from forward following (`w`). Do not command forward movement during an in-place turn. |
+| Final prose said turn right, then follow forward; all ten entries were `l,w`. | Combined keys mean simultaneous right yaw and forward translation, not turn-then-walk. Split the chronological phases; do not keep yaw active during subsequent straight following. |
 | Around 26–30 seconds, the returned photo occupied the foreground and cropped the face. One action contained return, receive, lower and spoken response. | The instruction to lower was present, so this is not a missing-instruction diagnosis. Separate the completed handoff/lowering state from the face-focused response when they compete for attention. |
 | Luggage appeared near the young man although text placed it at POV's right foot. | Translate body-relative placement into scene depth: luggage beside the camera wearer in the near foreground, young man farther ahead. Preserve ownership after the object moves out of frame. |
 | Retrieval included unfolding a photo. | This operation was already in the supplied Story Decision, not invented by Action generation. Do not silently remove source operations here; resolve that content upstream. Do not introduce additional operations yourself. |
@@ -1437,12 +1497,12 @@ Preserve the total interval and allow enough time for the actual line. Do not sh
 
 For this case's final 7-second interval, distinguish:
 1. Stationary grasp of the already parked luggage handle: `""`.
-2. Turn toward the established alley: use `""` and describe the rightward turn in prose, without forward motion.
+2. Turn toward the already established alley: `l` for this rightward route, without forward motion.
 3. Follow the young man along the visible route: `w`, without continuing the turn.
 
 These are phase examples, not fixed repeat counts or mandatory directions for every scene. Allocate their timestamps and repeat counts within the supplied interval. Keep the young man ahead, the photo low and luggage ownership continuous. Describe each action's current movement only, inheriting the preceding endpoint.
 
-If the intended action actually requires turning while advancing, use `w` for translation and describe the turning path in prose. Keep turn-then-walk phases separate.
+Use `l,w` only when the intended action actually requires turning and advancing simultaneously. Do not choose it simply because both words appear somewhere in the plan.
 
 ### Before returning actions
 

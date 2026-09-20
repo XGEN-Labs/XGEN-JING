@@ -1,6 +1,6 @@
 ---
 name: jing-prompt-skills
-description: Turn a story and optional reference images into validated XGEN-JING video inference cases with timed prompts and WASD controls. Use when preparing or revising cases for the XGEN-JING demo.
+description: Turn a story and optional reference images into validated XGEN-JING video inference cases with timed prompts and WASD/IJKL controls. Use when preparing or revising cases for the XGEN-JING demo.
 ---
 
 # XGEN-JING Prompt Skills
@@ -23,8 +23,9 @@ cases intended for inference. Report a failed stage before attempting a new run.
 The final `*_cases_en.json` is the English cases file. Preserve dialogue in
 its original language, reference image order, `<Picture N>` bindings, timing and
 control arrays. Each chunk's `control` list must have `repeat` entries, using
-WASD combinations such as `"w,a"` or `""` for no translation. Describe view
-rotation in the prompt; it has no control key in the demo.
+WASD/IJKL combinations such as `"w,a"` or `"w,j"`, or `""` for no control.
+WASD controls translation; `i/k` look up/down and `j/l` turn left/right.
+Keep view rotation in the prompt consistent with its control keys.
 
 The compiler targets 24 FPS with `generation.first_chunk_size=2` and computes
 `num_frames = 17 * sum(repeat) + 5`. Inference settings such as the four-step

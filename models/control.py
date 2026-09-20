@@ -6,26 +6,27 @@ from torch.nn import functional as F
 
 
 def control_vector(keys):
-    """WASD is a set, not a timeline. Opposite directions cancel."""
+    """Map simultaneous WASD/IJKL keys to [tx, ty, tz, pitch, yaw, roll]."""
     if not isinstance(keys, (str, list, tuple, set)):
-        raise TypeError("control must be a WASD string or a list of keys")
+        raise TypeError("control must be a WASD/IJKL string or a list of keys")
     if isinstance(keys, str):
         keys = ([key.strip().lower() for key in keys.split(",")]
                 if "," in keys else list(keys.strip().lower()))
     if any(
-        not isinstance(key, str) or key.lower() not in {"w", "a", "s", "d"}
+        not isinstance(key, str)
+        or key.lower() not in {"w", "a", "s", "d", "i", "j", "k", "l"}
         for key in keys
     ):
         raise ValueError(
-            "control only accepts individual w/a/s/d keys; repetition expressions are not supported"
+            "control only accepts individual w/a/s/d/i/j/k/l keys; repetition expressions are not supported"
         )
     keys = {key.lower() for key in keys}
     return [
         float(("d" in keys) - ("a" in keys)),
         0.0,
         float(("w" in keys) - ("s" in keys)),
-        0.0,
-        0.0,
+        float(("i" in keys) - ("k" in keys)),
+        float(("l" in keys) - ("j" in keys)),
         0.0,
     ]
 

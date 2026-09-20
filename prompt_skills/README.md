@@ -101,13 +101,16 @@ checked.
 
 Generated actions and the final cases use the same control format. The keys
 `w`, `s`, `a` and `d` mean forward, backward, left and right translation.
+`i/k` look up/down, and `j/l` turn left/right. Opposite keys cancel.
 The compiler copies each action's `control` list unchanged:
 
 | Control list | Meaning |
 | --- | --- |
 | `["w", "w"]` | Forward for two slices |
 | `["w,a"]` | Forward and left simultaneously for one slice |
-| `[""]` | No translation keys for one slice |
+| `["j"]` | Turn left in place for one slice |
+| `["w,l"]` | Move forward and turn right simultaneously for one slice |
+| `[""]` | No movement or rotation keys for one slice |
 
 List entries are ordered in time. For forward followed by left, generate two
 actions using `"w"` and `"a"` respectively, preserving their order and timing.
@@ -118,12 +121,12 @@ Each chunk has only `prompt`, `repeat` and a `control` list of that length.
 Frames equal `17 * sum(repeat) + 5`. Intermediate rendering metadata is omitted
 from the final JSON; references, resolution, seed and output name are preserved.
 
-View rotation is expressed in action prose, without mapping it to translation.
-In-place turns use no translation keys. Legacy `trajectory` fields, `*` counts,
-parenthesized expressions and rotation keys are rejected even with validation
-disabled. The intermediate schema is now 6.7; regenerate older intermediate
-artifacts. Old trajectory comma expressions describe ordered motions and cannot
-be converted by simply removing their counts. Existing final cases already using
+Keep action prose consistent with the controls. In-place looks and turns use
+IJKL without translation keys. Legacy `trajectory` fields, `*` counts and
+parenthesized expressions are rejected even with validation disabled. The
+intermediate schema is now 6.7; regenerate older intermediate artifacts. Old
+trajectory comma expressions describe ordered motions and cannot be converted
+by simply removing their counts. Existing final cases already using
 `control` lists remain compatible.
 
 ## Code layout

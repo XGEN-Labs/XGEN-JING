@@ -90,6 +90,12 @@ python3 demo_bidirection.py check_config=true
 bash demo.sh cases=examples/bakery_greeting.json
 ```
 
+Or:
+
+```bash
+bash demo.sh cases=examples/train_carriage_gaze.json
+```
+
 Results are saved to `examples/outputs/`.
 
 <details>
@@ -119,8 +125,9 @@ control entry per repeated slice:
 }
 ```
 
-`w/s/a/d` control forward/backward/left/right movement. `"w,a"` combines two keys
-in one slice; `""` applies no keys. Keep `control` the same length as `repeat`.
+`w/s/a/d` control forward/backward/left/right movement; `i/k` look up/down
+and `j/l` turn left/right. `"w,a"` or `"w,j"` combines keys in one slice.
+Opposite keys cancel; `""` applies no keys. Keep `control` the same length as `repeat`.
 With the default layout, `num_frames = 17 * sum(repeat) + 5`. Reference images
 are ordered and addressed as `<Picture 1>`, `<Picture 2>`, and so on, up to five.
 

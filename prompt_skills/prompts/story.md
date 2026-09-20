@@ -136,461 +136,461 @@ Story Decision is the only bridge from raw input to Action generation. It must b
 - Every important ownership claim has visible, audible, role-based, or physical evidence.
 - Object support chains begin before use and end in the stated terminal support.
 - The last beat's end state visibly proves `story_contract.visible_result` and `next_state`.
-- Render at 24 FPS with four denoising steps. Height and width must be positive multiples of 32. Render policy contains every value Compilation needs. Jing controls translation with WASD; in-place view rotation belongs in action prose, not additional control keys.
+- Render at 24 FPS with four denoising steps. Height and width must be positive multiples of 32. Render policy contains every value Compilation needs. Jing controls translation with WASD and view rotation with IJKL: i/k look up/down, j/l turn left/right. Keep action prose and control keys consistent; in-place turns use rotation keys without translation keys.
 - Render policy uses `control_signal: "camera_delta"` and `discrete_camera: true`; Action generation will convert the spatial plan into a required per-repeat discrete control schedule.
 
 Do not include final H3 prompts, S markers, `<d>` wrappers, chunks, or repeats in Story Decision. Those belong downstream.
 
 # Script generation logic: principles grounded in concrete cases
 
-本文将 原始问答对比材料转化为60秒内第一人称剧本的生成逻辑。使用时不要只记住结论；必须理解 case 中“为什么正确项比干扰项更适合当前角色、时间和问题类型”，再把这种关系迁移到新故事。
+This reference turns the original question-and-answer comparisons into principles for first-person stories up to 60 seconds. Do not memorize the conclusions alone: understand why the correct answer fits the role, time, and question better than the distractors, then apply that relationship to new stories.
 
-## 1. 使用方法
+## 1. How to use the cases
 
-每个 case 按同一顺序分析：
+Analyze each case in the same order:
 
 ```text
-原始情境与问题
-→ 正确项解决了什么逻辑约束
-→ 错误项偷换了什么维度
-→ 剧本中会表现为什么问题
-→ 60秒内如何修复成可见行动
+Original context and question
+→ The logical constraint satisfied by the correct answer
+→ The dimension substituted by the incorrect answer
+→ The resulting problem in a script
+→ A repair through visible action within 60 seconds
 ```
 
-不要复制人物名或表面动作。应抽取角色、信息、时间、因果和状态变化结构。
+Do not copy character names or surface actions. Extract the structure of roles, information, time, causality, and state changes.
 
 ---
 
-## 2. 维度一：语义功能必须一致
+## 2. Dimension one: match the semantic function
 
-### QA case：`train-17` / `xWant`
+### QA case: `train-17` / `xWant`
 
 > **Context:** Ash rode hard and put away his wet clothes to let them dry for a few hours.
 > **Question:** What will Ash want to do next?
-> **数据标注答案:** `lazy`
+> **Dataset-labeled answer:** `lazy`
 
-这是一个应当拒绝的噪声 case。问题要求“下一步行动”，`lazy` 却是属性或状态，无法成为可执行动作。
+Reject this noisy case. The question asks for a next action, but `lazy` is a trait or state, not an executable action.
 
-### 剧本中的错误
-
-```text
-火被扑灭后，学员接下来变得内疚。
-```
-
-“内疚”是心理反应，不是下一步行动；视频也无法把它直接当成动作生成。
-
-### 合理改写
+### Script error
 
 ```text
-火被盖灭后，学员低头看向被自己调高的旋钮，承认错误，并在下一只冷锅旁先放好锅盖。
+After the fire is extinguished, the trainee next feels guilty.
 ```
 
-这里依次出现：心理外化、语言行动和学习后的下一步行动。
+Guilt is an emotional reaction, not a next action; a video cannot render it directly as an action.
+
+### Plausible rewrite
+
+```text
+After the lid smothers the fire, the trainee looks down at the knob she turned up, admits her mistake, and places a lid beside the next cold pan before starting.
+```
+
+The sequence makes an internal reaction visible, expresses it in speech, and shows a next action informed by learning.
 
 ### Principle
 
-给 action list 中的每个阶段标记主要功能：`MOTIVE / PRECONDITION / ACTION / EFFECT / EMOTION / NEXT_ACTION`。如果一个 description 无法落实为当前功能，应重写而不是用形容词填充。
+Label each action phase with its main function: `MOTIVE / PRECONDITION / ACTION / EFFECT / EMOTION / NEXT_ACTION`. If a description cannot realize that function, rewrite it instead of filling it with adjectives.
 
 ---
 
-## 3. 维度二：角色归属必须正确
+## 3. Dimension two: assign actions to the correct roles
 
-### QA case：`train-54` / `oWant`
+### QA case: `train-54` / `oWant`
 
 > **Context:** Taylor saved other people's teeth from decay by providing good toothpaste.
 > **Question:** What will Others want to do next?
 > **Correct:** `thank Taylor`
 > **Incorrect:** `teach them how to floss`; `teach them how to use mouthwash`
 
-正确项属于受益者的社会回应。错误项把帮助者的教育任务转移给接受帮助的人，造成角色职责倒置。
+The correct answer is the beneficiaries' social response. The incorrect answers transfer the helper's teaching responsibility to the people receiving help, reversing the roles.
 
-### 剧本中的错误
+### Script error
 
-前台要求随机访客收拾一把来历不明的雨伞，但没有说明雨伞属于谁、访客为何负责。访客立即服从，就像工具人。
+A receptionist asks a random visitor to put away an unidentified umbrella without establishing its owner or the visitor's responsibility. The visitor immediately obeys as a mere plot device.
 
-### 合理改写
+### Plausible rewrite
 
-先展示S1把自己的湿伞横放在门垫上。玻璃门因此无法闭合，前台提醒：“先生，您的伞挡住门了。”S1收起自己的伞。所有权、责任和行动主体一致。
+First show S1 laying their own wet umbrella across the entrance mat. It prevents the glass door from closing. The receptionist says, "Sir, your umbrella is blocking the door." S1 puts away their umbrella. Ownership, responsibility, and the acting role agree.
 
 ### Principle
 
-每个事件都要标记：发起者、对象、所有者、受益者、受损者、知情者和责任者。一个角色不能只因为离物体最近就自动获得处理责任。
+For every event, identify the initiator, target, owner, beneficiary, harmed party, informed party, and responsible party. Proximity to an object does not automatically make a character responsible for it.
 
 ---
 
-## 4. 维度三：时间顺序必须成立
+## 4. Dimension three: preserve temporal order
 
-### QA case：`train-2` / `xWant`
+### QA case: `train-2` / `xWant`
 
 > **Context:** Remy was on the water and had baited the hook.
 > **Question:** What will Remy want to do next?
 > **Correct:** `cast the line`
 > **Incorrect:** `put the boat in the water`; `invite Kai out on the boat`
 
-错误项并非永远错误，而是在当前时间点已经太迟。
+The incorrect answers are not always wrong; they are too late at this point in time.
 
-### 剧本中的错误
+### Script error
 
-人物已经走到公交车门前，下一段才第一次展示公交车驶来；或者围巾完成交还之后，才补拍它如何掉落。
+A character has already reached the bus door before the next segment first shows the bus arriving, or the scarf has already been returned before its fall is shown.
 
-### 合理改写
+### Plausible rewrite
 
 ```text
-公交驶近并开门
-→ 女乘客匆忙起身
-→ 围巾从袋把滑落
-→ S1看到后提醒
-→ 女乘客停下确认
+The bus approaches and opens its door
+→ The woman passenger rises hurriedly
+→ The scarf slips off her bag handle
+→ S1 sees it and calls out
+→ The woman stops to check
 ```
 
 ### Principle
 
-故事展示顺序可以省略装饰，但不能省略使后续反应成立的触发。每个 action 必须在 `BEFORE / DURING / AFTER / NEXT` 中占据正确位置。
+The presentation may omit decoration, but never the trigger that makes a later reaction possible. Place every action correctly within `BEFORE / DURING / AFTER / NEXT`.
 
 ---
 
-## 5. 维度四：因果方向不能倒置
+## 5. Dimension four: do not reverse cause and effect
 
-### QA case：`train-76` / `xEffect`
+### QA case: `train-76` / `xEffect`
 
 > **Context:** Taylor received the winning lottery ticket and won the jackpot.
 > **Question:** What will happen to Taylor?
 > **Correct:** `Have more money than before`
 > **Incorrect:** `Buy more lottery tickets next time`
 
-财富增加是已经发生的直接结果；继续买彩票只是可能的后续行为。
+Increased wealth is the direct result that has already occurred; buying more tickets is only a possible later action.
 
-### 剧本中的错误
+### Script error
 
 ```text
-前台说“门口安全了”，所以S1把雨伞放进架子。
+The receptionist says, "The entrance is safe now," so S1 puts the umbrella in the stand.
 ```
 
-实际因果应当是S1移走雨伞，门正常关闭，入口才恢复安全。
+The actual causal order is that S1 removes the umbrella, the door closes normally, and the entrance becomes safe.
 
-### 合理改写
+### Plausible rewrite
 
 ```text
-雨伞挡住玻璃门
-→ 前台指出问题
-→ S1移走雨伞
-→ 玻璃门完整关闭
-→ 雨水不再吹进入口
+The umbrella blocks the glass door
+→ The receptionist points out the problem
+→ S1 removes the umbrella
+→ The glass door closes completely
+→ Rain no longer blows into the entrance
 ```
 
 ### Principle
 
-对每个连接使用“因为A，所以B”测试。台词可以提示原因，但不能代替造成结果的物理行动。
+Test every connection with "Because A, therefore B." Dialogue may identify a cause but cannot replace the physical action that produces a result.
 
 ---
 
-## 6. 维度五：动机必须足以解释动作
+## 6. Dimension five: motivation must explain the action
 
-### QA case：`train-15` / `xIntent`
+### QA case: `train-15` / `xIntent`
 
 > **Context:** Austin saw a purse on top of a moving car and ran alongside to get the driver's attention.
 > **Question:** Why did Austin do this?
 > **Correct:** `help another person`
 > **Incorrect:** `be nice`; `practice for a marathon`
 
-`practice for a marathon` 只能解释跑步，不能解释钱包、汽车和提醒司机；`be nice` 又过于宽泛。
+`practice for a marathon` explains running but not the purse, car, or warning to the driver; `be nice` is too broad.
 
-### 剧本中的错误
+### Script error
 
-随机访客听前台一句话，就花多个动作处理陌生物品；或者陌生人冒高风险帮助别人，却没有时间压力、职责或关系依据。
+A random visitor spends several actions handling an unfamiliar object after one request from a receptionist. Alternatively, a stranger takes a major risk to help someone without time pressure, responsibility, or an established relationship.
 
-### 合理改写
+### Plausible rewrite
 
-让物品明确属于S1，或让S1亲眼看见它从对方手中掉落。低成本帮助只需要即时可见问题；高成本帮助还需要更强关系、职责或风险理由。
+Establish that the object belongs to S1, or let S1 see it fall from the other person's hand. Low-cost help needs only an immediately visible problem; high-cost help also needs a stronger relationship, responsibility, or risk-related reason.
 
 ### Principle
 
-动机必须解释：为什么是这个对象、为什么现在、为什么用这种方式、为什么愿意承担这个成本。
+Motivation must explain why this target, why now, why this method, and why the character accepts the cost.
 
 ---
 
-## 7. 维度六：行动前提必须完备
+## 7. Dimension six: establish action prerequisites
 
-### QA case：`train-26` / `xNeed`
+### QA case: `train-26` / `xNeed`
 
 > **Context:** Aubrey understood the teacher's question and answered.
 > **Question:** What did Aubrey need beforehand?
 > **Correct:** `know the information`
 > **Incorrect:** `ask for a gold star`; `skip her class`
 
-正确回答知识问题需要事先掌握信息。索要奖励是事后行为，逃课则削弱前提。
+Correctly answering a knowledge question requires prior knowledge. Requesting a reward comes afterward; skipping class undermines the prerequisite.
 
-### 剧本中的错误
+### Script error
 
-同学突然知道如何处理油锅火灾、突然拿到锅盖，或者S1在没看见伞架的情况下准确走向伞架。
+A classmate suddenly knows how to handle a pan fire or acquires a lid without explanation, or S1 walks directly to an umbrella stand they have never seen.
 
-### 合理改写
+### Plausible rewrite
 
-- 第一段就把锅盖和隔热手套建立在固定架上。
-- 主厨作为专业角色给出简短分工。
-- 在人物移动前，让目的地先进入视野边缘。
-
-### Principle
-
-关键动作前检查：知道吗、会做吗、有工具吗、有权限吗、够得着吗。越能直接解决核心问题的能力和道具，越应提前建立。
-
----
-
-## 8. 维度七：人物信息必须可达
-
-### QA case：红围巾原剧本
-
-原剧本一开始只展示一条红围巾放在长椅上，却直接在叙述中声明它属于绿衣女人。S1没有看到归属证据，却说：“您的红围巾落在长椅上了。”
-
-这不是画面可获得的信息，而是作者信息。
-
-### 合理改写
-
-第一段展示红围巾穿绕在女人的手提袋把手上。公交到站后，围巾从袋把滑落到长椅，整个过程在S1视野内发生。此后S1准确喊“您的围巾掉了”便有可靠信息来源。
-
-如果无法展示滑落，则应改问：
-
-> “女士，这条红围巾是您的吗？”
+- Establish the lid and heat-resistant gloves on a fixed rack in the first segment.
+- Let the chef, as the professional, give brief task assignments.
+- Bring the destination into peripheral view before a character moves toward it.
 
 ### Principle
 
-为每项判断记录：人物需要知道什么、信息来自视觉/声音/对话/既往身份中的哪一种、何时获得、获得后采取什么动作。人物不能拥有导演层的隐藏事实。
+Before a critical action, check knowledge, ability, tools, authority, and reach. The more directly an ability or prop solves the central problem, the earlier it should be established.
 
 ---
 
-## 9. 维度八：情绪必须匹配目标和时间
+## 8. Dimension seven: characters must have access to information
 
-### QA case：`train-22` / `xReact`
+### QA case: the original red-scarf script
+
+The original script first shows a red scarf on a bench but immediately declares in narration that it belongs to the woman in green. S1 has seen no evidence of ownership yet says, "You left your red scarf on the bench."
+
+This is author knowledge, not information available from the scene.
+
+### Plausible rewrite
+
+First show the red scarf looped through the woman's handbag handle. After the bus arrives, the scarf slips from the handle onto the bench within S1's view. S1 then has a reliable source for calling, "You dropped your scarf."
+
+If the fall cannot be shown, ask instead:
+
+> "Ma'am, is this red scarf yours?"
+
+### Principle
+
+For each judgment, record what the character needs to know, whether the source is sight, sound, dialogue, or prior role knowledge, when they learn it, and what action follows. Characters cannot possess hidden facts available only to the director.
+
+---
+
+## 9. Dimension eight: emotion must fit the goal and timing
+
+### QA case: `train-22` / `xReact`
 
 > **Context:** Quinn finally found a puppy missing for a week.
 > **Question:** How would Quinn feel?
 > **Correct:** `very relieved`
 > **Incorrect:** `excited`; `very excited`
 
-兴奋和宽慰都是正向情绪，但失而复得的核心机制是持续风险解除。
+Excitement and relief are both positive, but recovering something lost primarily resolves an ongoing risk.
 
-### 剧本中的错误
+### Script error
 
-人物发现失物后只机械说“谢谢”，或者危险解除后仍保持完全相同的惊恐姿势。
+A character mechanically says "Thank you" after finding a lost item, or remains in exactly the same frightened pose after danger has passed.
 
-### 合理改写
+### Plausible rewrite
 
-女乘客先检查空袋把和颈部，意识到围巾确实遗失；接稳并围回颈间后，肩膀放松、向S1点头，再继续登车。情绪变化依赖确认和结果，而不是提前出现。
+The woman passenger first checks the empty bag handle and her neck, realizing that the scarf is missing. After receiving it securely and wrapping it around her neck, she relaxes her shoulders, nods to S1, and continues boarding. The emotional change follows confirmation and resolution rather than appearing in advance.
 
 ### Principle
 
-情绪由人物主观理解产生：他认为谁让自己的哪个目标发生了什么变化。用姿势、动作节奏、距离和下一项选择外化，不要只写情绪标签。
+Emotion comes from a character's interpretation of who changed which goal and how. Express it through posture, action rhythm, distance, and the next choice rather than an emotion label alone.
 
 ---
 
-## 10. 维度九：下一步行动必须具体并连续
+## 10. Dimension nine: the next action must be concrete and continuous
 
-### QA case：`train-8` / `xWant`
+### QA case: `train-8` / `xWant`
 
 > **Context:** Quinn wanted to help clean a messy room.
 > **Question:** What will Quinn want to do next?
 > **Correct:** `Pick up the dirty clothes`
 > **Incorrect:** `help out a friend`
 
-`help out a friend` 只重复总体目标；捡脏衣服才是可执行的下一步。
+`help out a friend` merely repeats the overall goal; picking up dirty clothes is an executable next step.
 
-### 剧本中的错误
+### Script error
 
 ```text
-S1意识到门口不安全，于是开始处理问题。
+S1 realizes the entrance is unsafe and starts addressing the problem.
 ```
 
-### 合理改写
+### Plausible rewrite
 
 ```text
-S1把手机放回口袋，转身走回地垫，俯身握住自己雨伞的弯柄，将它完整提离门轨。
+S1 pockets the phone, turns and walks back to the mat, bends to grip the curved handle of their own umbrella, and lifts it completely clear of the door track.
 ```
 
 ### Principle
 
-用“谁具体用什么，对什么做了什么？”测试 action description。无法被镜头和声音表现的抽象动作必须继续具体化。
+Test an action description with "Who uses what to do exactly what to which target?" Make abstract actions more concrete until they can be conveyed through image and sound.
 
 ---
 
-## 11. 维度十：他人回应必须有独立逻辑
+## 11. Dimension ten: other characters need independent reasons to respond
 
-### QA case：`train-96` / `oReact`
+### QA case: `train-96` / `oReact`
 
 > **Context:** Jesse offered to help another person.
 > **Question:** How would Others feel?
 > **Correct:** `thankful`
 > **Incorrect:** `caring and kind`; `ungrateful`
 
-`caring and kind` 是对帮助者的属性判断，不是受助者的感受。
+`caring and kind` describes the helper's traits, not the recipient's feelings.
 
-### 剧本中的错误
+### Script error
 
-所有NPC在S1行动后都立即微笑、感谢并配合；无论他们是否受益、受损、着急或怀疑。
+Every NPC immediately smiles, thanks S1, and cooperates after S1 acts, regardless of whether the NPC benefits, loses something, is in a hurry, or is suspicious.
 
-### 合理改写
+### Plausible rewrite
 
-- 前台看到S1自己的伞挡门，因此履行岗位职责提醒，而不是无缘无故命令。
-- S1看到门确实被卡住，因此道歉并处理，而不是因为NPC说话就服从。
-- 围巾主人先确认归属，再感谢并接取，而不是在不知道物品是什么时立即回应。
+- The receptionist sees S1's own umbrella blocking the door and gives a reminder as part of the job, rather than issuing an arbitrary command.
+- S1 sees that the door is stuck, then apologizes and acts on the evidence rather than obeying simply because an NPC spoke.
+- The scarf's owner confirms ownership before thanking S1 and taking it, rather than responding before knowing what the object is.
 
 ### Principle
 
-为NPC分别记录目标、任务、信息、得失和下一步。NPC的回应必须属于NPC，而不是主角目标的附属动画。
+Track each NPC's goals, tasks, information, gains, losses, and next step separately. Their response must follow their own reasoning, not act as an accessory to the protagonist's goal.
 
 ---
 
-## 12. 维度十一：行动必须产生可追踪结果
+## 12. Dimension eleven: actions must produce traceable results
 
-### QA case：`train-40` / `xEffect`
+### QA case: `train-40` / `xEffect`
 
 > **Context:** A doctor provided professional treatment to critically ill Quinn.
 > **Question:** What will happen to Quinn?
 > **Correct:** `get better`
 > **Incorrect:** `be nervous`
 
-好转是身体结果；紧张是心理状态，不能替代治疗效果。
+Recovery is a physical result; nervousness is a mental state and cannot substitute for the treatment's effect.
 
-### 剧本中的错误
+### Script error
 
-前台最后说“门口安全了”，但画面没有显示雨伞离开门轨、门关闭或通道恢复。
+The receptionist concludes, "The entrance is safe now," but the image never shows the umbrella leaving the door track, the door closing, or the passage clearing.
 
-### 合理改写
+### Plausible rewrite
 
-S1提起雨伞后，玻璃门失去阻挡并连续闭合；S1把伞放入架内，地垫保持空出，入口不再进雨。结果通过环境状态证明。
-
-### Principle
-
-每场结束填写状态差：信息、物体支持、任务、位置、风险和关系分别改变了什么。若所有状态都与开场相同，该场通常没有推进故事。
-
----
-
-## 13. 维度十二：结果必须延续到结尾
-
-### QA case：油锅故事
-
-原版本在锅盖灭火后很快恢复备餐，像事故从未发生；后半段又反复强调无人碰盖，形成静态重复。
-
-### 合理改写
-
-学员承认自己为快速上色调高火力。事故锅继续密封冷却；她移到相邻冷台面时，先把备用锅盖放在新锅旁。上一事件的结果转化成下一行动的前提，表现真正学习。
+After S1 lifts the umbrella, the unobstructed glass door closes continuously. S1 places the umbrella in the stand, the mat stays clear, and rain no longer enters. The environment's state proves the result.
 
 ### Principle
 
-伤害、知识、承诺、物体状态和关系变化不能在chunk边界重置。结尾应保留一个可见的长期后果，而不是恢复到故事开始前。
+At each scene's end, record changes in information, object support, tasks, positions, risks, and relationships. If every state matches the opening, the scene usually has not advanced the story.
 
 ---
 
-## 14. 综合 case A：诊所雨伞架
+## 13. Dimension twelve: results must persist through the ending
 
-### 不合理版本
+### QA case: the pan-fire story
 
-- 蓝伞一开始就在门垫上，所有者不明。
-- 前台要求随机访客处理陌生物品，责任关系缺失。
-- 没有人或环境受到阻碍，却用台词宣布“门口安全了”。
-- 拾取、转正、对准、插入、松手被过度拆分，故事没有新信息。
+The original version resumes cooking soon after the lid smothers the fire, as if the accident never happened. The later part repeatedly emphasizes that nobody touches the lid, producing static repetition.
 
-### 约20秒、仅两人的合理版本
+### Plausible rewrite
 
-```text
-1. S1收起自己的湿伞进入诊所，为拿手机把伞横放在门内地垫。
-2. 玻璃门回弹时被伞尖挡住，停在半开位置，雨点吹进入口。
-3. 前台指向入口：“先生，您的伞挡住门了，伞架就在右边。”
-4. S1回头看见被卡住的门：“抱歉，我马上收好。”
-5. S1提起自己的伞，玻璃门恢复闭合。
-6. S1把伞放入门右侧伞架；门完全关闭，地垫和通道保持空出。
-```
+The trainee admits turning up the heat to brown the vegetables quickly. The affected pan stays covered while cooling. At an adjacent cold worktop, she places a spare lid beside the new pan before starting. The previous result becomes a prerequisite for the next action and demonstrates learning.
 
-### 为什么合理
+### Principle
 
-- 不新增人物也能用门的状态形成可见风险和结果。
-- 伞属于S1，责任明确。
-- 前台基于岗位和可见问题提醒。
-- S1基于证据改正，不是机械服从。
-- 终局由门关闭和入口不再进雨证明，而不是台词宣布。
+Injury, knowledge, commitments, object states, and relationships cannot reset at chunk boundaries. Preserve a visible lasting consequence at the end rather than returning to the pre-story state.
 
 ---
 
-## 15. 综合 case B：公交站红围巾
+## 14. Combined case A: the clinic umbrella stand
 
-### 不合理版本
+### Implausible version
 
-- 围巾归属仅由叙述声明，S1没有证据。
-- 公交尚未到站，女人却突然走向乘车点。
-- 女人确认后站着等待S1完成冗长手递手动作，行动成本偏高。
-- 拿到围巾后没有收好或继续乘车，结局只证明瞬时握持。
+- A blue umbrella is already on the mat, with no established owner.
+- The receptionist asks a random visitor to handle an unfamiliar item, with no responsibility established.
+- Nobody and nothing is obstructed, yet dialogue announces that the entrance is safe.
+- Picking up, straightening, aligning, inserting, and releasing are split excessively without adding story information.
 
-### 约17秒合理版本
+### Plausible version: about 20 seconds, two people only
 
 ```text
-1. 围巾可见地穿绕在女人的手提袋把手上。
-2. 公交到站开门；女人匆忙起身，围巾从袋把滑落长椅。
-3. S1亲眼看到并呼喊：“女士，您的红围巾掉了！”
-4. 女人摸空袋把和颈部，确认：“是我的，谢谢！”
-5. S1因离长椅更近而拾起围巾，走两步停在她面前。
-6. 女人接稳后围回颈间，S1让开乘车路线。
-7. 女人携围巾和手提袋登车，长椅为空。
+1. S1 closes their own wet umbrella and enters the clinic, laying it across the inside mat to take out a phone.
+2. As the glass door swings back, the umbrella tip blocks it halfway open and rain blows into the entrance.
+3. The receptionist points toward the entrance: "Sir, your umbrella is blocking the door. The stand is on the right."
+4. S1 turns to see the stuck door: "Sorry, I'll put it away now."
+5. S1 lifts their own umbrella and the glass door resumes closing.
+6. S1 puts the umbrella into the stand to the door's right; the door closes fully and the mat and passage stay clear.
 ```
 
-### 为什么合理
+### Why it works
 
-归属、遗落、发现、确认、拾取、交接和后续目标全部可见；公交到站解释了匆忙与时间压力。
+- The door's state provides visible risk and resolution without adding a character.
+- S1 owns the umbrella, establishing responsibility.
+- The receptionist's reminder follows their role and a visible problem.
+- S1 corrects the problem based on evidence rather than mechanical obedience.
+- The closing door and absence of incoming rain prove the result, rather than dialogue declaring it.
 
 ---
 
-## 16. 综合 case C：烹饪课油锅小火
+## 15. Combined case B: the red scarf at the bus stop
 
-### 不合理版本
+### Implausible version
 
-- 火焰无因出现。
-- 学员和同学机械等待主厨说完才行动。
-- 学员没有目标、失误、求助或成长。
-- 同学从正上方徒手扣盖，动作不理想。
-- 灭火后只重复等待，事件没有人物后果。
+- Narration alone declares ownership; S1 has no evidence.
+- The woman suddenly approaches the boarding point before the bus arrives.
+- After confirming ownership, she waits through an unnecessarily long handoff by S1.
+- After receiving the scarf, she neither puts it away nor continues boarding; the ending proves only momentary possession.
 
-### 约30秒合理版本
+### Plausible version: about 17 seconds
 
 ```text
-1. 学员想让蔬菜快速上色，对照示范菜后把火从中档调高。
-2. 油声变尖、灰烟升起、锅内出现局限小火；学员停手并呼救。
-3. 同学下意识伸向水杯；主厨制止并分工关火、取盖。
-4. 学员放稳木勺并关火；同学戴隔热手套取盖。
-5. 主厨提示从侧面滑盖；学员退半步让路。
-6. 同学滑盖密封，火光消失，三人退开。
-7. 学员承认自己急于上色而调高火力。
-8. 主厨给出一次教学反馈。
-9. 学员在相邻冷锅旁先放好备用锅盖，事故锅继续密封冷却。
+1. The scarf is visibly looped through the woman's handbag handle.
+2. The bus arrives and opens its door; she rises hurriedly and the scarf slips from the handle onto the bench.
+3. S1 sees it happen and calls, "Ma'am, you dropped your red scarf!"
+4. She touches the empty bag handle and her neck, confirming, "It's mine, thank you!"
+5. Being closer to the bench, S1 picks up the scarf, walks two steps, and stops in front of her.
+6. After taking it securely, she wraps it around her neck; S1 clears the boarding route.
+7. She boards with the scarf and handbag, leaving the bench empty.
 ```
 
-### 为什么合理
+### Why it works
 
-行动成本、专业能力和角色分工明确；错误冲动被及时纠正；结果同时改变锅的状态、学员的知识和下一次操作。
-
-### 复杂度提醒
-
-该版本已接近30秒上限。如果对话超过四轮或action超过九个，应优先合并主厨的重复确认、删除装饰性等待，而不是删掉起火原因、关火、滑盖或终局成长。
+Ownership, loss, discovery, confirmation, pickup, handoff, and the next goal are all visible. The bus's arrival explains the haste and time pressure.
 
 ---
 
-## 17. 从 case 到新故事的迁移模板
+## 16. Combined case C: a small pan fire in cooking class
 
-生成新故事前填写：
+### Implausible version
+
+- Flames appear without a cause.
+- The trainee and classmate mechanically wait for the chef to finish speaking before acting.
+- The trainee has no goal, mistake, request for help, or growth.
+- The classmate covers the pan from directly above with bare hands, an unsuitable action.
+- After extinguishing the fire, the scene only repeats waiting and shows no consequence for the characters.
+
+### Plausible version: about 30 seconds
 
 ```text
-源故事希望保留的核心事件：
-S1是谁、当前目标是什么：
-现有NPC分别为什么在场：
-关键物品最初由谁持有或支撑：
-触发为何现在发生：
-每个人凭什么知道：
-谁有责任、能力和权限行动：
-最小可执行行动链：
-直接外部结果：
-人物或关系结果：
-无需新增人物时如何让结果可见：
-结尾如何证明结果仍持续：
+1. Wanting to brown the vegetables quickly, the trainee checks the demonstration dish and turns the heat up from medium.
+2. The oil hisses sharply, gray smoke rises, and a small localized flame appears in the pan; the trainee stops and calls for help.
+3. A classmate instinctively reaches toward a water glass; the chef stops the reach and assigns turning off the heat and fetching the lid.
+4. The trainee sets the wooden spoon down securely and turns off the heat; the classmate puts on heat-resistant gloves and takes the lid.
+5. The chef instructs sliding the lid from the side; the trainee steps half a pace back to make room.
+6. The classmate slides the lid over the pan to seal it, the flame disappears, and all three step back.
+7. The trainee admits increasing the heat to brown the vegetables quickly.
+8. The chef gives one piece of teaching feedback.
+9. The trainee places a spare lid beside an adjacent cold pan before starting; the affected pan stays covered while cooling.
 ```
 
-最终检查：如果替换人物身份、删除触发、交换角色或打乱时间顺序后故事仍看似不变，说明人物和因果尚未真正进入剧本，需要继续修复。
+### Why it works
+
+Action costs, professional competence, and responsibilities are clear. A mistaken impulse is corrected promptly. The result changes the pan's state, the trainee's knowledge, and the next operation.
+
+### Complexity reminder
+
+This version is already close to its 30-second budget. If it exceeds four dialogue turns or nine actions, first combine the chef's repetitive confirmations and remove decorative waiting, rather than removing the fire's cause, turning off the heat, sliding the lid, or the concluding growth.
+
+---
+
+## 17. Template for applying the cases to a new story
+
+Complete this before generating a new story:
+
+```text
+Core event to preserve from the source:
+Who S1 is and their immediate goal:
+Why each existing NPC is present:
+Initial holder or support of each critical object:
+Why the trigger occurs now:
+How each person knows what they know:
+Who has responsibility, ability, and authority to act:
+Minimum executable action chain:
+Direct external result:
+Character or relationship result:
+How to make the result visible without adding a character:
+How the ending proves that the result persists:
+```
+
+Final check: if the story seems unchanged after substituting identities, deleting the trigger, swapping roles, or rearranging time, its characters and causality are not yet integral to the script. Continue repairing it.
 
 # Complexity budget for stories up to 60 seconds
 
@@ -679,10 +679,10 @@ Preserve intended meaning and speaker order. Repair translated, repetitive, or s
 - Begin every Chinese prompt with `第一人称POV` and every English prompt with `First-person POV.`. Do not mix the Chinese token into English prose.
 - Do not translate a requested line unless the user asks. Express its language through the surrounding case language, not through a label.
 
-Recommended Chinese form:
+Example (shown in English):
 
 ```text
-第一人称POV延续同一图书馆柜台位置，约45岁的女图书管理员把办好的借阅证放在柜台上，以沉稳清晰的成年女性声线说：“借阅证办好了，请收好。”
+First-person POV. Continuing at the same library counter, I watch the approximately forty-five-year-old woman librarian place the completed library card on the counter and say in a calm, clear adult female voice, "Your library card is ready. Please keep it safe."
 ```
 
 Recommended English form:
@@ -743,7 +743,7 @@ Show the cause before the line and the resulting action after it. End the case o
       "role_id": "ego_hiker",
       "is_camera_wearer": true,
       "identity": "An adult man hiker and the only camera wearer.",
-      "prompt_reference": "成年男性徒步者",
+      "prompt_reference": "the adult male hiker",
       "goal": "Reach the viewpoint without taking a wrong branch.",
       "known_information": ["The viewpoint is uphill but the remaining distance is unknown."],
       "capability_and_authority": "Can walk the trail and ask for directions.",
@@ -755,7 +755,7 @@ Show the cause before the line and the resulting action after it. End the case o
       "role_id": "trail_guide",
       "is_camera_wearer": false,
       "identity": "An adult woman trail guide in a green outdoor jacket.",
-      "prompt_reference": "绿色户外夹克的成年女性向导",
+      "prompt_reference": "the adult woman guide in a green outdoor jacket",
       "goal": "Help trail users follow the correct route.",
       "known_information": ["The viewpoint is ten minutes farther uphill."],
       "capability_and_authority": "Has local route knowledge and may provide directions.",
@@ -782,8 +782,8 @@ Show the cause before the line and the resulting action after it. End the case o
     "terminal_composition": "The uphill trail is centered; the guide remains behind-left."
   },
   "dialogue": [
-    {"speaker_role_id": "ego_hiker", "language": "Chinese", "utterance": "前面的观景台还有多远？", "purpose": "Request the missing distance."},
-    {"speaker_role_id": "trail_guide", "language": "Chinese", "utterance": "再走十分钟就到了。", "purpose": "Supply distance and motivate travel."}
+    {"speaker_role_id": "ego_hiker", "language": "English", "utterance": "How much farther is the viewpoint ahead?", "purpose": "Request the missing distance."},
+    {"speaker_role_id": "trail_guide", "language": "English", "utterance": "It is another ten minutes on foot.", "purpose": "Supply distance and motivate travel."}
   ],
   "beats": [
     {"beat_id": 1, "duration_seconds": 3.0, "action_type": "navigation", "dominant_change": "Approach and stop at speaking distance.", "participants": ["ego_hiker", "trail_guide"], "environment_ids": ["forest_viewpoint_path"], "plan": "Walk uphill, decelerate, and stop two steps from the guide.", "end_state": "Camera faces the guide; uphill route remains behind her."},
@@ -800,8 +800,8 @@ Show the cause before the line and the resulting action after it. End the case o
     "num_inference_steps": 4,
     "control_signal": "camera_delta",
     "discrete_camera": true,
-    "prompt_language": "Chinese",
-    "visual_style": "自然写实真人电影感，连续具身眼平视角，身份、空间锚点与动作保持稳定",
+    "prompt_language": "English",
+    "visual_style": "Naturalistic live-action cinematic style, continuous embodied eye-level viewpoint, with stable identities, spatial anchors, and actions",
     "non_diegetic_music": "N/A"
   }
 }
@@ -812,7 +812,7 @@ The user message may include zero, one, or multiple reference images. Only Story
 
 Add a top-level `ref` array to the Story Decision: one nonempty caption string per image, in supplied order; use `[]` when there are no images. Begin each caption with its exact `<Picture N>` label and include its supplied filename. Describe the visible subject and whether it supplies a character, scene, object, or multiple subjects. Captions are for understanding and binding references, not replacements for image conditioning. Do not infer identity or unseen details from a filename alone; state uncertainty when necessary.
 
-Bind relevant roles, objects, and environment_requirements to their exact `<Picture N>` references. For an image-grounded role, use a stable prompt_reference such as "the young man in <Picture 2>" or "<Picture 2>中的青年", with only enough additional description to distinguish subjects within that image. Retain image references in the bindings rather than replacing them with a long caption-derived appearance description. A scene and a character may come from different images; bind them separately. Do not force irrelevant references into the story. A person depicted in a story photograph is not physically present merely because a reference image depicts them.
+Bind relevant roles, objects, and environment_requirements to their exact `<Picture N>` references. For an image-grounded role, use a stable prompt_reference such as "the young man in <Picture 2>", with only enough additional description to distinguish subjects within that image. Retain image references in the bindings rather than replacing them with a long caption-derived appearance description. A scene and a character may come from different images; bind them separately. Do not force irrelevant references into the story. A person depicted in a story photograph is not physically present merely because a reference image depicts them.
 
 In each existing environment requirement's descriptive text, explicitly bind the scene or its specific visible part to its image, e.g. "shop interior shown in <Picture 2>". A caption in `ref` alone is not a scene binding. When several images show different views or parts of one location, distinguish those views or parts in the existing descriptive fields; do not imply that every image applies to every camera view. Preserve these bindings when a story beat reuses that environment. Do not add schema fields for this mapping.
 
@@ -834,10 +834,10 @@ A first-person traveler pulls luggage toward a restaurant in a western town and 
 | Ask about the bar | 3 s | 3.5 s; allow the complete question. |
 | Answer and ask about arrival | 3.5 s | 4.5 s; longer utterance needs more time. |
 | Confirm arrival / ask about work | 2.5 + 2.5 s | 1.5 + 1.5 s; brief replies do not need equal time to complex actions. |
-| Explain the search, retrieve and offer photo | 4 s, with “你见过她吗？” prematurely merged into the explanation | 4 s explanation + 4 s retrieval/handoff; the question stays after viewing. |
+| Explain the search, retrieve and offer photo | 4 s, with “Have you seen her?” prematurely merged into the explanation | 4 s explanation + 4 s retrieval/handoff; the question stays after viewing. |
 | View photo and react | 3 s | 4 s including the subsequent short question; allow the reaction to be seen first. |
 | Return photo | 3 s | 6 s including return, lowering the photo, looking back at the face and the privacy request. |
-| Request privacy and release door | 3 s for the combined final utterance | 4 s for releasing, orienting and saying “跟我来，我们出去说。”; the privacy sentence occurs in the previous beat. |
+| Request privacy and release door | 3 s for the combined final utterance | 4 s for releasing, orienting and saying “Come with me. Let us talk outside.”; the privacy sentence occurs in the previous beat. |
 | Leave toward alley | 3.5 s, mostly turning/gesturing | 7 s for actual leading, taking the luggage handle and following continuously. |
 
 The original overloaded speech and hand actions and left the departure incomplete. The manual plan made these transitions more readable, but its 4-second retrieval/handoff still includes several sequential changes. It also preserves eight speaking beats (the last two sentences are separate deliveries), exceeding the default six-turn budget for this duration; seven dialogue-array entries do not make this six turns.
@@ -851,14 +851,14 @@ For a refinement compatible with the existing six-turn budget, omit the nonessen
 | Beat | Duration | Planned event and visible end state |
 |---|---:|---|
 | 1 | 4 s | Approach; park luggage upright by POV's right foot and release its handle. Establish the restaurant doorway and a separate exterior alley to its right. |
-| 2 | 3.5 s | POV: “不好意思，这里就是镇上的灰狼酒吧吗？” Stop at speaking distance. |
-| 3 | 3 s | Young man: “这里白天卖饭，晚上才是酒吧。” Finish the answer; omit the redundant arrival/work questions. |
-| 4 | 4 s | POV: “找人。一个对我很重要的人在这里失踪了。” Finish speaking before retrieval. |
+| 2 | 3.5 s | POV: “Excuse me, is this the Gray Wolf bar in town?” Stop at speaking distance. |
+| 3 | 3 s | Young man: “We serve food here during the day. It is a bar at night.” Finish the answer; omit the redundant arrival/work questions. |
+| 4 | 4 s | POV: “I am looking for someone. Someone very important to me went missing here.” Finish speaking before retrieval. |
 | 5 | 3 s | Briefly look toward one's own coat, retrieve the worn photo and bring it into offering position. Do not invent folding/unfolding; no handoff yet. |
 | 6 | 3 s | Offer the photo; the young man grasps it with his free hand before POV releases. POV hands withdraw and gaze returns to his face. |
-| 7 | 4 s | He studies the photo and becomes serious; only after the reaction, POV asks “你见过她吗？” The photo stays below his face. |
-| 8 | 7 s | He returns it; POV receives and lowers it below the main view, then looks back at his face. He quietly says “这里人太多，不是谈这件事的地方。” End with the photo lowered. |
-| 9 | 4 s | He releases the door, naturally turns toward the established alley and says “跟我来，我们出去说。” No additional pointing gesture is needed; his orientation and next movement show the route. |
+| 7 | 4 s | He studies the photo and becomes serious; only after the reaction, POV asks “Have you seen her?” The photo stays below his face. |
+| 8 | 7 s | He returns it; POV receives and lowers it below the main view, then looks back at his face. He quietly says “There are too many people here. This is not the place to discuss it.” End with the photo lowered. |
+| 9 | 4 s | He releases the door, naturally turns toward the established alley and says “Come with me. Let us talk outside.” No additional pointing gesture is needed; his orientation and next movement show the route. |
 | 10 | 7 s | He walks ahead; POV grasps the luggage handle and turns to follow, keeping the photo low. The restaurant and exterior alley retain their positions. |
 
 Total: 42.5 seconds, 10 beats, six speaking beats (2, 3, 4, 7, 8, 9). The scene is slightly shorter overall while retrieval/handoff gains time: remove low-value dialogue rather than rush a critical interaction. Do not freeze the young man's arm in a rigid pose throughout the conversation; holding the door does not require repeated conspicuous gestures.

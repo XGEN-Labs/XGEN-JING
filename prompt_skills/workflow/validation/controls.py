@@ -2,13 +2,13 @@
 
 import re
 
-CONTROL_RE = re.compile(r"[wasd](?:,[wasd])*")
+CONTROL_RE = re.compile(r"[wasdijkl](?:,[wasdijkl])*")
 
 
 def validate_control(value, label, errors):
     if not isinstance(value, str) or (value != "" and not CONTROL_RE.fullmatch(value)):
         errors.append(
-            f"{label}: use WASD keys such as 'w,a' or ''; legacy trajectory expressions are not supported"
+            f"{label}: use WASD/IJKL keys such as 'w,a', 'w,j' or ''; legacy trajectory expressions are not supported"
         )
 
 
