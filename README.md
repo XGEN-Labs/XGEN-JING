@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/16ad3a85-d174-4947-92a6-d6ee4060d4fc
   <a href="https://huggingface.co/XGENlabs/XGEN-JING"><img src="https://img.shields.io/badge/Hugging_Face-Models-FFD21E?logo=huggingface&amp;logoColor=black" alt="Hugging Face"></a>
   <a href="https://xgenlabs.ai/gallery.html"><img src="https://img.shields.io/badge/Gallery-XGEN--JING-2563EB" alt="Gallery"></a>
   <a href="https://xgenlabs.ai/research.html"><img src="https://img.shields.io/badge/Blog-XGEN%20Labs-F97316" alt="Blog"></a>
-  <img src="https://img.shields.io/badge/arXiv-Coming_Soon-B31B1B?logo=arxiv&amp;logoColor=white" alt="arXiv: Coming Soon">
+  <a href="https://arxiv.org/abs/2610.19726"><img src="https://img.shields.io/badge/arXiv-2610.19726-B31B1B?logo=arxiv&amp;logoColor=white" alt="arXiv: 2610.19726"></a>
 </p>
 
 ---
@@ -30,15 +30,16 @@ navigation, object interaction, and conversation.
   compose an experience and explore different actions from the same starting point.
 
 This release provides **four-step bidirectional inference**, example cases, and
-**Prompt skills**. The causal model and technical report are coming soon.
+**Prompt skills**. The [technical report](https://arxiv.org/abs/2610.19726) is
+available; the causal model is coming soon.
 
 ## 📋 Release Plan
 
 - [x] **JING-Flash-v1** — Four-step bidirectional model.
 - [x] **Inference code and examples** — Camera controls, reference images, and joint audio/video generation.
 - [x] **[Prompt skills](prompt_skills/SKILL.md)** — Generate validated inference cases from stories and reference images.
+- [x] **[Technical report](https://arxiv.org/abs/2610.19726)** — Generative World Simulation with DAO and JING.
 - [ ] **Causal model** — Coming soon.
-- [ ] **Technical report** — Coming soon.
 
 ## 🚀 Quick Start
 
